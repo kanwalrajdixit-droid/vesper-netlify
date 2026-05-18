@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VESPER</title>
+<style>
+:root{
+  --bg:#050810;--s1:#080d18;--s2:#0c1220;--bd:#14203a;--bd2:#1e2e4a;
+  --gld:#d4a843;--gld2:#f0c96a;--gld3:rgba(212,168,67,.1);
+  --txt:#b8d4e8;--txt2:#4a6880;--txt3:#1e3040;
+  --grn:#00ffaa;--red:#ff4455;--warn:#ffaa00;--pur:#c084fc;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Courier New',monospace;background:var(--bg);color:var(--txt);height:100vh;overflow:hidden;}
+
+/* ── API KEY BANNER ── */
+#api-banner{display:flex;align-items:center;gap:10px;padding:8px 18px;background:rgba(212,168,67,.08);border-bottom:1px solid rgba(212,168,67,.2);flex-shrink:0;}
+#api-banner.ok{background:rgba(0,255,170,.05);border-color:rgba(0,255,170,.15);}
+.api-lbl{font-size:8.5px;letter-spacing:2px;color:var(--gld);white-space:nowrap;text-transform:uppercase;}
+#api-banner.ok .api-lbl{color:var(--grn);}
+.api-inp{flex:1;background:var(--s2);border:1px solid rgba(212,168,67,.3);color:var(--txt);font-family:'Courier New',monospace;font-size:10px;padding:5px 10px;border-radius:5px;outline:none;letter-spacing:.5px;}
+.api-inp:focus{border-color:var(--gld);}
+.api-inp.ok{border-color:rgba(0,255,170,.4);color:var(--grn);}
+.api-save{background:var(--gld);border:none;color:#050810;font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;padding:5px 12px;border-radius:5px;cursor:pointer;white-space:nowrap;font-weight:600;}
+.api-save:hover{background:var(--gld2);}
+.api-note{font-size:8px;color:var(--txt3);white-space:nowrap;}
+.tb{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:46px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.tb-l{display:flex;align-items:center;gap:10px;}
+.tb-pulse{width:8px;height:8px;border-radius:50%;background:var(--grn);box-shadow:0 0 8px var(--grn);animation:plz 2s ease-in-out infinite;}
+@keyframes plz{0%,100%{opacity:1;}50%{opacity:.2;}}
+.tb-name{font-size:14px;letter-spacing:7px;color:var(--gld);font-style:italic;}
+.tb-sub{font-size:7px;letter-spacing:3px;color:var(--txt3);margin-left:3px;align-self:flex-end;margin-bottom:4px;}
+.tb-dt{font-size:9px;color:var(--txt2);letter-spacing:1.5px;}
+.tb-r{display:flex;gap:7px;}
+.tbn{background:none;border:1px solid var(--bd);color:var(--txt2);font-size:9px;letter-spacing:1.5px;padding:4px 12px;border-radius:20px;cursor:pointer;transition:all .15s;font-family:'Courier New',monospace;text-transform:uppercase;}
+.tbn:hover{border-color:var(--gld);color:var(--gld);}
+
+/* ── LAYOUT ── */
+.app-wrap{display:flex;flex-direction:column;height:100vh;}
+.main{display:flex;flex:1;overflow:hidden;}
+
+/* ── LEFT CALENDAR ── */
+.cal{width:205px;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;padding:12px;overflow-y:auto;flex-shrink:0;}
+.cal::-webkit-scrollbar{width:2px;}.cal::-webkit-scrollbar-thumb{background:var(--bd);}
+.sec-lbl{font-size:8px;letter-spacing:3px;color:var(--gld);text-transform:uppercase;margin-bottom:9px;}
+#drop-zone{border:1px dashed rgba(212,168,67,.4);border-radius:7px;padding:9px 8px;text-align:center;margin-bottom:8px;cursor:pointer;transition:all .2s;}
+#drop-zone:hover{border-color:var(--gld);background:var(--gld3);}
+.dz-icon{font-size:14px;margin-bottom:3px;}
+.dz-txt{font-size:8px;color:var(--txt2);letter-spacing:1px;line-height:1.55;}
+.cal-tip{font-size:7.5px;color:var(--txt3);line-height:1.6;margin-bottom:8px;padding:4px 6px;border-left:2px solid var(--bd);}
+.cdh{font-size:8px;color:var(--txt2);letter-spacing:2px;text-transform:uppercase;margin:8px 0 4px;padding-bottom:2px;border-bottom:1px solid var(--bd);}
+.cev{padding:4px 0;border-bottom:1px solid var(--txt3);}
+.cev:last-child{border-bottom:none;}
+.cev-t{font-size:8px;color:var(--gld);letter-spacing:.5px;}
+.cev-n{font-size:9.5px;color:var(--txt);margin-top:1px;line-height:1.3;}
+.cev-l{font-size:8px;color:var(--txt2);margin-top:1px;}
+.noevs{font-size:9px;color:var(--txt3);text-align:center;margin:12px 0;line-height:1.7;}
+.cal-add{width:100%;margin-top:8px;background:none;border:1px dashed var(--bd);color:var(--txt3);font-size:9px;padding:5px;border-radius:5px;cursor:pointer;transition:all .12s;font-family:'Courier New',monospace;}
+.cal-add:hover{border-color:var(--gld);color:var(--gld);}
+
+/* ── CENTER: CYBER RINGS ── */
+.ctr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 70% at 50% 50%,#0d0920 0%,#050810 65%);}
+.ctr::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(212,168,67,.03) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0;}
+.ctr::after{content:'';position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(ellipse,rgba(212,168,67,.13) 0%,rgba(212,168,67,.04) 35%,transparent 68%);pointer-events:none;z-index:0;}
+#vface{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
+#vsvg{width:290px;height:290px;flex-shrink:0;}
+
+/* Ring animations */
+.rr1{transform-origin:145px 145px;animation:rot 22s linear infinite;}
+.rr2{transform-origin:145px 145px;animation:rot 14s linear infinite reverse;}
+.rr3{transform-origin:145px 145px;animation:rot 36s linear infinite;}
+.rr4{transform-origin:145px 145px;animation:rot 9s linear infinite reverse;}
+.rr5{transform-origin:145px 145px;animation:rot 55s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* State speeds */
+.st-idle .rr1{animation-duration:22s;}.st-idle .rr2{animation-duration:14s;}.st-idle .rr4{animation-duration:9s;}
+.st-listening .rr1{animation-duration:5s;}.st-listening .rr2{animation-duration:3s;}.st-listening .rr4{animation-duration:2s;}
+.st-processing .rr1{animation-duration:2s;}.st-processing .rr2{animation-duration:1.4s;}.st-processing .rr4{animation-duration:.9s;}
+.st-speaking .rr1{animation-duration:8s;}.st-speaking .rr2{animation-duration:5s;}.st-speaking .rr4{animation-duration:3.5s;}
+
+/* State ring color */
+#sring{transition:stroke .6s,filter .7s;}
+.st-idle #sring{stroke:#d4a843;filter:drop-shadow(0 0 8px #d4a843) drop-shadow(0 0 16px rgba(212,168,67,.5));}
+.st-listening #sring{stroke:#00ffaa;filter:drop-shadow(0 0 10px #00ffaa) drop-shadow(0 0 20px rgba(0,255,170,.4));}
+.st-processing #sring{stroke:#ffaa00;filter:drop-shadow(0 0 10px #ffaa00) drop-shadow(0 0 20px rgba(255,170,0,.4));}
+.st-speaking #sring{stroke:#c084fc;filter:drop-shadow(0 0 10px #c084fc) drop-shadow(0 0 20px rgba(192,132,252,.4));}
+
+/* Center text state */
+#clbl{transition:fill .6s;}
+.st-idle #clbl{fill:#d4a843;}
+.st-listening #clbl{fill:#00ffaa;}
+.st-processing #clbl{fill:#ffaa00;}
+.st-speaking #clbl{fill:#c084fc;}
+
+/* Core pulse */
+.core-pulse{animation:cpulse 3s ease-in-out infinite;}
+@keyframes cpulse{0%,100%{opacity:.3;r:32px;}50%{opacity:.7;r:37px;}}
+.st-listening .core-pulse{animation:cpulse-l .8s ease-in-out infinite;}
+@keyframes cpulse-l{0%,100%{opacity:.4;r:28px;}50%{opacity:1;r:40px;}}
+.st-processing .core-pulse{animation:cpulse-p .4s ease-in-out infinite;}
+@keyframes cpulse-p{0%,100%{opacity:.2;r:24px;}50%{opacity:1;r:42px;}}
+.st-speaking .core-pulse{animation:cpulse-s .3s ease-in-out infinite;}
+@keyframes cpulse-s{0%,100%{r:28px;}50%{r:38px;}}
+
+/* Spectrum bars */
+.sb{transform-box:fill-box;transform-origin:bottom center;}
+.st-speaking .sb:nth-child(1){animation:sba .26s ease-in-out infinite alternate;}
+.st-speaking .sb:nth-child(2){animation:sba .20s .04s ease-in-out infinite alternate;}
+.st-speaking .sb:nth-child(3){animation:sba .31s .08s ease-in-out infinite alternate;}
+.st-speaking .sb:nth-child(4){animation:sba .17s .02s ease-in-out infinite alternate;}
+.st-speaking .sb:nth-child(5){animation:sba .34s .06s ease-in-out infinite alternate;}
+.st-speaking .sb:nth-child(6){animation:sba .23s .10s ease-in-out infinite alternate;}
+.st-speaking .sb:nth-child(7){animation:sba .18s .05s ease-in-out infinite alternate;}
+@keyframes sba{from{transform:scaleY(1);}to{transform:scaleY(4.5);}}
+
+/* Status, waveform, mic */
+.fst{margin-top:7px;font-size:9px;letter-spacing:4px;color:var(--gld);text-align:center;height:12px;transition:color .5s;}
+.st-listening .fst{color:var(--grn);}.st-processing .fst{color:var(--warn);}.st-speaking .fst{color:var(--pur);}
+.wv{display:flex;gap:3px;align-items:center;justify-content:center;height:18px;margin-top:5px;opacity:0;transition:opacity .3s;}
+.st-listening .wv{opacity:1;}
+.wvb{width:3px;border-radius:2px;background:var(--grn);height:3px;}
+.wvb:nth-child(odd){animation:wva .35s ease-in-out infinite alternate;}
+.wvb:nth-child(even){animation:wva .28s .08s ease-in-out infinite alternate;}
+@keyframes wva{to{height:16px;}}
+.interim{font-size:10px;color:var(--gld2);text-align:center;min-height:13px;max-width:200px;line-height:1.4;font-style:italic;margin-top:3px;}
+.mic{width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,.07);border:2px solid var(--gld);color:var(--gld);font-size:17px;cursor:pointer;transition:all .2s;margin-top:8px;display:flex;align-items:center;justify-content:center;}
+.mic:hover{background:rgba(212,168,67,.16);}
+.mic.on{background:rgba(0,255,170,.1);border-color:var(--grn);color:var(--grn);animation:mpr 1s ease-in-out infinite;}
+@keyframes mpr{0%,100%{box-shadow:0 0 0 0 rgba(0,255,170,.4);}50%{box-shadow:0 0 0 12px transparent;}}
+.mic.proc{border-color:var(--warn);color:var(--warn);animation:none;}
+.vhint{font-size:8px;color:var(--txt3);letter-spacing:1.5px;margin-top:4px;text-align:center;max-width:200px;line-height:1.5;}
+.vhint.warn{color:var(--warn);}
+.vsel{display:flex;align-items:center;gap:5px;margin-top:5px;}
+.vsel label{font-size:7.5px;color:var(--txt3);letter-spacing:1px;}
+.vsel select{background:var(--s2);border:1px solid var(--bd);color:var(--txt2);font-family:'Courier New',monospace;font-size:8px;padding:3px 6px;border-radius:5px;outline:none;max-width:130px;}
+
+/* ── RIGHT PANEL ── */
+.rp{width:310px;background:var(--s1);border-left:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;}
+.tabs{display:flex;border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;width:31px;padding:10px 0;font-size:12px;text-align:center;cursor:pointer;color:var(--txt3);border-bottom:2px solid transparent;transition:all .12s;}
+.tab:hover:not(.on){color:var(--txt2);}
+.tab.on{color:var(--gld);border-bottom-color:var(--gld);}
+.tcon{flex:1;overflow:hidden;position:relative;}
+.tp{position:absolute;inset:0;overflow-y:auto;padding:12px;display:none;flex-direction:column;gap:10px;}
+.tp.on{display:flex;}
+.tp::-webkit-scrollbar{width:2px;}.tp::-webkit-scrollbar-thumb{background:var(--bd);}
+
+/* Chat */
+.ma{align-self:flex-start;max-width:90%;background:rgba(212,168,67,.05);border:1px solid rgba(212,168,67,.15);border-radius:2px 9px 9px 9px;padding:8px 11px;font-size:11px;line-height:1.75;color:var(--txt);}
+.ma strong{color:var(--gld);}.ma p{margin-bottom:4px;}.ma p:last-child{margin-bottom:0;}.ma ul{padding-left:11px;}.ma li{margin-bottom:2px;}
+.mu{align-self:flex-end;max-width:90%;background:var(--s2);border:1px solid var(--bd2);border-radius:9px 9px 2px 9px;padding:8px 11px;font-size:11px;line-height:1.65;}
+.cia{padding:9px;border-top:1px solid var(--bd);display:flex;gap:7px;flex-shrink:0;}
+.ci{flex:1;background:var(--s2);border:1px solid var(--bd);color:var(--txt);font-family:'Courier New',monospace;font-size:11px;padding:7px 10px;border-radius:7px;outline:none;resize:none;transition:border-color .15s;max-height:72px;}
+.ci:focus{border-color:var(--gld);}
+.cs{background:var(--gld);border:none;color:#050810;width:34px;height:34px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;flex-shrink:0;}
+.cs:hover{background:var(--gld2);}.cs:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Shared panel */
+.plbl{font-size:8px;letter-spacing:2.5px;color:var(--gld);text-transform:uppercase;margin-bottom:8px;display:block;}
+.pfi,.pfs,.pfta{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);font-family:'Courier New',monospace;font-size:10.5px;padding:7px 9px;border-radius:6px;outline:none;transition:border-color .15s;margin-bottom:7px;}
+.pfi:focus,.pfs:focus,.pfta:focus{border-color:var(--gld);}
+.pfs option{background:var(--s2);}
+.pfta{resize:vertical;min-height:64px;}
+.prow{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.pbtn{width:100%;background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.28);color:var(--gld);font-family:'Courier New',monospace;font-size:9.5px;letter-spacing:1.5px;padding:8px;border-radius:6px;cursor:pointer;transition:all .15s;text-transform:uppercase;margin-top:2px;}
+.pbtn:hover{background:rgba(212,168,67,.16);}.pbtn:disabled{opacity:.4;cursor:not-allowed;}
+.pbtn.grn{background:rgba(0,255,170,.07);border-color:rgba(0,255,170,.22);color:var(--grn);}
+.pbtn.grn:hover{background:rgba(0,255,170,.14);}
+.pout{background:rgba(212,168,67,.04);border:1px solid rgba(212,168,67,.14);border-radius:6px;padding:10px 12px;font-size:10.5px;line-height:1.8;color:var(--txt);margin-top:8px;display:none;}
+.pout.on{display:block;}.pout strong{color:var(--gld);}
+.pout-act{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.pa-btn{background:none;border:1px solid var(--bd);color:var(--txt2);font-size:9px;padding:4px 10px;border-radius:5px;cursor:pointer;transition:all .12s;font-family:'Courier New',monospace;}
+.pa-btn:hover{border-color:var(--gld);color:var(--gld);}
+
+/* Brief */
+.brbtn{width:100%;background:rgba(212,168,67,.07);border:1px solid rgba(212,168,67,.22);color:var(--gld);font-size:9px;letter-spacing:2px;padding:8px;border-radius:6px;cursor:pointer;transition:all .15s;font-family:'Courier New',monospace;text-transform:uppercase;flex-shrink:0;}
+.brbtn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* Quick */
+.qg{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.qc{background:var(--s2);border:1px solid var(--bd);color:var(--txt2);font-size:9px;padding:8px 5px;border-radius:6px;cursor:pointer;transition:all .12s;font-family:'Courier New',monospace;line-height:1.4;text-align:center;}
+.qc:hover{border-color:var(--gld);color:var(--gld);}
+
+/* WhatsApp */
+.wa-compose{background:rgba(0,255,170,.04);border:1px solid rgba(0,255,170,.12);border-radius:8px;padding:10px;margin-bottom:8px;}
+.wa-lbl{font-size:8px;letter-spacing:2px;color:var(--grn);text-transform:uppercase;margin-bottom:7px;}
+.wa-contact{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--txt3);}
+.wa-contact:last-child{border-bottom:none;}
+.wa-av{width:26px;height:26px;border-radius:50%;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gld);flex-shrink:0;font-weight:700;}
+.wa-info{flex:1;}
+.wa-name{font-size:10px;color:var(--txt);}
+.wa-cat{font-size:8px;color:var(--txt2);}
+.wa-num{font-size:8px;color:var(--txt3);}
+.wa-no-num{font-size:8px;color:var(--warn);font-style:italic;}
+.wa-btn{background:rgba(0,255,170,.08);border:1px solid rgba(0,255,170,.18);color:var(--grn);font-size:9px;padding:4px 9px;border-radius:5px;cursor:pointer;transition:all .12s;font-family:'Courier New',monospace;}
+.wa-btn:hover{background:rgba(0,255,170,.16);}.wa-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* News topics */
+.tc-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px;}
+.tc{background:var(--s2);border:1px solid var(--bd);color:var(--txt2);font-size:8.5px;padding:4px 9px;border-radius:20px;cursor:pointer;transition:all .12s;font-family:'Courier New',monospace;}
+.tc:hover{border-color:var(--gld2);color:var(--txt);}
+.tc.on{background:var(--gld3);border-color:var(--gld);color:var(--gld);}
+
+/* Tasks */
+.t-add{display:flex;gap:6px;margin-bottom:7px;}
+.t-inp{flex:1;background:var(--s2);border:1px solid var(--bd);color:var(--txt);font-family:'Courier New',monospace;font-size:10.5px;padding:6px 9px;border-radius:6px;outline:none;transition:border-color .15s;}
+.t-inp:focus{border-color:var(--gld);}
+.t-add-btn{background:var(--gld);border:none;color:#050810;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;font-weight:700;}
+.tgl{font-size:8px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 4px;}
+.tgl.high{color:var(--red);}.tgl.medium{color:var(--warn);}.tgl.low{color:var(--txt2);}
+.ti{display:flex;align-items:flex-start;gap:7px;padding:6px 0;border-bottom:1px solid var(--txt3);}
+.ti:last-child{border-bottom:none;}
+.tcb{width:13px;height:13px;border:1.5px solid var(--gld);border-radius:3px;cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;transition:all .15s;}
+.tcb.done{background:var(--gld);color:#050810;}
+.ttxt{flex:1;font-size:10.5px;line-height:1.4;color:var(--txt);}
+.ti.done .ttxt{text-decoration:line-through;color:var(--txt2);}
+.tcat{font-size:8px;color:var(--txt3);margin-top:1px;}
+.tdel{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;padding:0 3px;}
+.tdel:hover{color:var(--red);}
+.tpri{font-size:7px;padding:1px 5px;border-radius:3px;letter-spacing:1px;font-weight:600;flex-shrink:0;margin-top:3px;}
+.tpri.high{background:rgba(255,68,85,.15);color:var(--red);}
+.tpri.medium{background:rgba(255,170,0,.15);color:var(--warn);}
+.tpri.low{background:rgba(212,168,67,.12);color:var(--gld);}
+.tstat{font-size:9px;color:var(--txt2);margin-bottom:7px;letter-spacing:1px;}
+
+/* Reminders */
+.rem-add{width:100%;background:rgba(192,132,252,.07);border:1px solid rgba(192,132,252,.18);color:var(--pur);font-family:'Courier New',monospace;font-size:9px;letter-spacing:1.5px;padding:7px;border-radius:6px;cursor:pointer;text-transform:uppercase;margin-bottom:10px;transition:all .15s;}
+.rem-add:hover{background:rgba(192,132,252,.14);}
+.rdlbl{font-size:8px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;text-align:center;margin:8px 0 5px;padding:3px;background:var(--s2);border-radius:4px;}
+.ri{display:flex;align-items:flex-start;gap:8px;padding:6px 9px;border-radius:7px;margin-bottom:4px;background:rgba(212,168,67,.04);border:1px solid rgba(212,168,67,.08);}
+.ri.fired{opacity:.4;background:none;border-color:var(--txt3);}
+.ri.soon{border-color:rgba(192,132,252,.28);background:rgba(192,132,252,.04);}
+.ri-time{font-size:9px;color:var(--gld);min-width:42px;margin-top:2px;flex-shrink:0;}
+.ri.soon .ri-time{color:var(--pur);}.ri.fired .ri-time{color:var(--txt3);}
+.ri-body{flex:1;}
+.ri-title{font-size:10.5px;color:var(--txt);line-height:1.3;}
+.ri-notes{font-size:9px;color:var(--txt2);margin-top:2px;}
+.ri-del{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;padding:2px 4px;}
+.ri-del:hover{color:var(--red);}
+.rbadge{font-size:7px;padding:1px 5px;border-radius:3px;margin-top:3px;display:inline-block;}
+.rbadge.done{background:rgba(100,100,120,.2);color:var(--txt3);}
+.rbadge.soon{background:rgba(192,132,252,.14);color:var(--pur);}
+
+/* App grid */
+.app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;}
+.app-card{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 6px;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.app-card:hover{border-color:var(--gld);background:var(--gld3);}
+.app-card.open{border-color:var(--grn);background:rgba(0,255,170,.04);}
+.app-icon{font-size:18px;line-height:1;}
+.app-nm{font-size:8px;color:var(--txt2);letter-spacing:1px;}
+.app-card:hover .app-nm{color:var(--gld);}.app-card.open .app-nm{color:var(--grn);}
+.app-vcmd{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:9.5px;color:var(--txt2);line-height:1.75;}
+.app-vcmd span{color:var(--gld);}
+
+/* Settings */
+.srow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);}
+.srow:last-child{border-bottom:none;}
+.slbl{font-size:11px;color:var(--txt);}.sdesc{font-size:9px;color:var(--txt2);margin-top:2px;}
+
+/* Loading */
+.ld{display:inline-flex;gap:3px;align-items:center;}
+.ldot{width:4px;height:4px;background:var(--gld);border-radius:50%;animation:ldp 1.2s ease-in-out infinite;}
+.ldot:nth-child(2){animation-delay:.2s;}.ldot:nth-child(3){animation-delay:.4s;}
+@keyframes ldp{0%,80%,100%{opacity:.3;transform:scale(.8);}40%{opacity:1;transform:scale(1);}}
+
+/* Modals */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:700;}
+.ov.on{display:flex;}
+.modal{background:var(--s2);border:1px solid rgba(212,168,67,.28);border-radius:12px;padding:20px;width:390px;max-width:94vw;}
+.mh{font-size:11px;letter-spacing:3px;color:var(--gld);margin-bottom:16px;text-transform:uppercase;font-style:italic;}
+.fg{margin-bottom:10px;}
+.fl{font-size:8px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;margin-bottom:4px;display:block;}
+.fi,.fs,.fta{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--txt);font-family:'Courier New',monospace;font-size:11px;padding:7px 10px;border-radius:6px;outline:none;transition:border-color .15s;}
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--gld);}
+.fs option{background:var(--s2);}
+.fta{resize:vertical;min-height:50px;}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mact{display:flex;gap:7px;margin-top:15px;justify-content:flex-end;}
+.btn{padding:6px 14px;border-radius:6px;font-family:'Courier New',monospace;font-size:9.5px;cursor:pointer;border:none;transition:all .12s;}
+.btc{background:var(--gld);color:#050810;font-weight:600;}.btc:hover{background:var(--gld2);}
+.btg{background:transparent;border:1px solid var(--bd);color:var(--txt2);}.btg:hover{border-color:var(--txt2);color:var(--txt);}
+.btd{background:transparent;border:1px solid var(--red);color:var(--red);}.btd:hover{background:var(--red);color:#fff;}
+
+/* Toast */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--s2);border:1px solid var(--gld);color:var(--txt);font-size:11px;padding:9px 18px;border-radius:8px;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;max-width:280px;text-align:center;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tb">
+    <div class="tb-l">
+      <div class="tb-pulse"></div>
+      <span class="tb-name">VESPER</span>
+      <span class="tb-sub">V.E.S.P.E.R</span>
+    </div>
+    <div class="tb-dt" id="tbdt"></div>
+    <div class="tb-r">
+      <button class="tbn" onclick="swt('apps',qtab('apps'))">⊞ Apps</button>
+      <button class="tbn" onclick="openModal('sett-modal')">⚙</button>
+    </div>
+  </div>
+
+  <!-- API KEY BANNER -->
+  <div id="api-banner">
+    <div class="api-lbl" id="api-lbl">API Key Required</div>
+    <input class="api-inp" id="api-key-inp" type="password" placeholder="sk-ant-api03-…  (your Anthropic API key)" autocomplete="off" onkeydown="if(event.key==='Enter')saveKey()"/>
+    <button class="api-save" onclick="saveKey()">Connect</button>
+    <div class="api-note">Key stored in session only — cleared on tab close</div>
+  </div>
+
+  <div class="main">
+
+    <!-- LEFT: CALENDAR -->
+    <div class="cal">
+      <div class="sec-lbl">Calendar</div>
+      <div id="drop-zone" onclick="document.getElementById('ics-inp').click()" ondragover="dzOv(event)" ondragleave="dzLv()" ondrop="dzDp(event)">
+        <div class="dz-icon">📁</div>
+        <div class="dz-txt">Drop .ics here<br/>or click to import</div>
+      </div>
+      <input type="file" id="ics-inp" accept=".ics,.ical" style="display:none" onchange="doICS(event)"/>
+      <div class="cal-tip">Outlook → File → Save Calendar → .ics</div>
+      <div id="cal-body"><div class="noevs">Import Outlook .ics<br/>to load your schedule</div></div>
+      <button class="cal-add" onclick="openModal('ev-modal');evEdit=null;">+ Add local event</button>
+    </div>
+
+    <!-- CENTER: VESPER RINGS -->
+    <div class="ctr">
+      <div id="vface">
+        <svg id="vsvg" class="st-idle" viewBox="0 0 290 290" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="fg" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="fgs" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <radialGradient id="bgrd" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#d4a843" stop-opacity=".22"/>
+              <stop offset="45%" stop-color="#d4a843" stop-opacity=".06"/>
+              <stop offset="100%" stop-color="#050810" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Background glow -->
+          <circle cx="145" cy="145" r="143" fill="url(#bgrd)"/>
+
+          <!-- RING 1: outer tick ring — slow counter-rotate -->
+          <g class="rr2">
+            <circle cx="145" cy="145" r="133" fill="none" stroke="#2a1608" stroke-width="1.2"/>
+            <g stroke="#d4a843" opacity=".65">
+              <!-- Major ticks every 30deg, minor every 5deg -->
+              <line x1="145" y1="13" x2="145" y2="24" stroke-width="2.2" opacity=".85" transform="rotate(0 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(5 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(10 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(15 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(20 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(25 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(30 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(35 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(40 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(45 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(50 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(55 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(60 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(65 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(70 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(75 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(80 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(85 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="24" stroke-width="2.2" opacity=".85" transform="rotate(90 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(95 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(100 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(105 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(110 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(115 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(120 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(125 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(130 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(135 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(140 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(145 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(150 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(155 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(160 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(165 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(170 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(175 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="24" stroke-width="2.2" opacity=".85" transform="rotate(180 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(185 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(190 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(195 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(200 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(205 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(210 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(215 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(220 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(225 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(230 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(235 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(240 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(245 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(250 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(255 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(260 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(265 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="24" stroke-width="2.2" opacity=".85" transform="rotate(270 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(275 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(280 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(285 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(290 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(295 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(300 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(305 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(310 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(315 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(320 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(325 145 145)"/>
+              <line x1="145" y1="13" x2="145" y2="23" stroke-width="1.5" opacity=".8" transform="rotate(330 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(335 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(340 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(345 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(350 145 145)"/>
+              <line x1="145" y1="16" x2="145" y2="21" stroke-width=".85" transform="rotate(355 145 145)"/>
+            </g>
+          </g>
+
+          <!-- RING 2: segmented arcs + dots — clockwise -->
+          <g class="rr1">
+            <path d="M145 27 A118 118 0 0 1 236 91" fill="none" stroke="#d4a843" stroke-width="2.8" stroke-linecap="round" opacity=".75" filter="url(#fgs)"/>
+            <path d="M236 199 A118 118 0 0 1 145 263" fill="none" stroke="#d4a843" stroke-width="2.8" stroke-linecap="round" opacity=".75" filter="url(#fgs)"/>
+            <path d="M54 199 A118 118 0 0 1 54 91"   fill="none" stroke="#8a6020" stroke-width="1.2" stroke-linecap="round" opacity=".38"/>
+            <circle cx="145" cy="27" r="2.8" fill="#f0c96a" opacity=".9" filter="url(#fgs)" transform="rotate(18 145 145)"/>
+            <circle cx="145" cy="27" r="2.8" fill="#f0c96a" opacity=".9" filter="url(#fgs)" transform="rotate(54 145 145)"/>
+            <circle cx="145" cy="27" r="2.8" fill="#f0c96a" opacity=".9" filter="url(#fgs)" transform="rotate(90 145 145)"/>
+            <circle cx="145" cy="27" r="2.8" fill="#f0c96a" opacity=".9" filter="url(#fgs)" transform="rotate(126 145 145)"/>
+            <circle cx="145" cy="27" r="2.8" fill="#f0c96a" opacity=".9" filter="url(#fgs)" transform="rotate(162 145 145)"/>
+            <circle cx="145" cy="27" r="2" fill="#8a6020" opacity=".55" transform="rotate(198 145 145)"/>
+            <circle cx="145" cy="27" r="2" fill="#8a6020" opacity=".55" transform="rotate(234 145 145)"/>
+            <circle cx="145" cy="27" r="2" fill="#8a6020" opacity=".55" transform="rotate(270 145 145)"/>
+            <circle cx="145" cy="27" r="2" fill="#8a6020" opacity=".55" transform="rotate(306 145 145)"/>
+            <circle cx="145" cy="27" r="2" fill="#8a6020" opacity=".55" transform="rotate(342 145 145)"/>
+          </g>
+
+          <!-- RING 3: medium dashed + accent arcs -->
+          <g class="rr3">
+            <circle cx="145" cy="145" r="100" fill="none" stroke="#3d1f08" stroke-width="1.2" stroke-dasharray="5 5" opacity=".8"/>
+            <path d="M145 45 A100 100 0 0 1 232 103" fill="none" stroke="#d4a843" stroke-width="2.2" stroke-linecap="round" opacity=".6" filter="url(#fgs)"/>
+            <path d="M58 187 A100 100 0 0 1 145 245"  fill="none" stroke="#d4a843" stroke-width="2.2" stroke-linecap="round" opacity=".6" filter="url(#fgs)"/>
+            <polygon points="145,46 149,53 145,60 141,53" fill="#d4a843" opacity=".7" filter="url(#fgs)" transform="rotate(0 145 145)"/>
+            <polygon points="145,46 149,53 145,60 141,53" fill="#d4a843" opacity=".7" filter="url(#fgs)" transform="rotate(90 145 145)"/>
+            <polygon points="145,46 148,52 145,58 142,52" fill="#8a6020" opacity=".45" transform="rotate(180 145 145)"/>
+            <polygon points="145,46 148,52 145,58 142,52" fill="#8a6020" opacity=".45" transform="rotate(270 145 145)"/>
+          </g>
+
+          <!-- RING 4: inner tick ring -->
+          <g class="rr4">
+            <circle cx="145" cy="145" r="78" fill="none" stroke="#301408" stroke-width="1.8"/>
+            <g stroke="#c8942c" opacity=".7">
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(0 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(12 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(24 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(36 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(48 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(60 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(72 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(84 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(96 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(108 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(120 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(132 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(144 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(156 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(168 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(180 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(192 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(204 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(216 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(228 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(240 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(252 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(264 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(276 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(288 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(300 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(312 145 145)"/>
+              <line x1="145" y1="68" x2="145" y2="75" stroke-width="1.3" transform="rotate(324 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(336 145 145)"/>
+              <line x1="145" y1="70" x2="145" y2="75" stroke-width=".8" transform="rotate(348 145 145)"/>
+            </g>
+          </g>
+
+          <!-- RING 5: state indicator glow ring -->
+          <circle id="sring" cx="145" cy="145" r="60" fill="none" stroke="#d4a843" stroke-width="2.6" stroke-dasharray="16 8" filter="url(#fg)" opacity=".95"/>
+
+          <!-- RING 6: fast accent arcs -->
+          <g class="rr5">
+            <path d="M145 86 A59 59 0 0 1 196 117" fill="none" stroke="#d4a843" stroke-width="4" stroke-linecap="round" opacity="1" filter="url(#fg)"/>
+            <path d="M145 204 A59 59 0 0 1 94 173" fill="none" stroke="#d4a843" stroke-width="4" stroke-linecap="round" opacity="1" filter="url(#fg)"/>
+            <circle cx="145" cy="86" r="5" fill="#f0c96a" filter="url(#fg)" transform="rotate(7 145 145)"/>
+            <circle cx="145" cy="86" r="5" fill="#f0c96a" filter="url(#fg)" transform="rotate(187 145 145)"/>
+          </g>
+
+          <!-- CENTER DISC -->
+          <circle cx="145" cy="145" r="48" fill="#030407" opacity=".96"/>
+          <circle cx="145" cy="145" r="46" fill="none" stroke="#2c1406" stroke-width="2"/>
+          <!-- Pulsing ring -->
+          <circle class="core-pulse" cx="145" cy="145" r="32" fill="none" stroke="#d4a843" stroke-width="1.2" opacity=".5"/>
+          <!-- Fill layers -->
+          <circle cx="145" cy="145" r="22" fill="rgba(212,168,67,.12)"/>
+          <circle cx="145" cy="145" r="12" fill="rgba(212,168,67,.2)"/>
+          <!-- Hot core -->
+          <circle cx="145" cy="145" r="6" fill="#f0c96a" opacity="1" filter="url(#fg)"/>
+          <circle cx="145" cy="145" r="3" fill="white" opacity=".8"/>
+
+          <!-- VESPER text -->
+          <text id="clbl" x="145" y="138" text-anchor="middle" font-family="'Courier New',monospace" font-size="11" fill="#d4a843" letter-spacing="5.5" opacity=".97">VESPER</text>
+          <text x="145" y="153" text-anchor="middle" font-family="'Courier New',monospace" font-size="5.5" fill="#7a5018" letter-spacing="3" opacity=".7">V . E . S . P . E . R</text>
+
+          <!-- Spectrum bars (animate when speaking) -->
+          <g>
+            <rect class="sb" x="116" y="158" width="4" height="8" rx="1.5" fill="#d4a843" opacity=".65"/>
+            <rect class="sb" x="123" y="156" width="4" height="10" rx="1.5" fill="#d4a843" opacity=".72"/>
+            <rect class="sb" x="130" y="154" width="4" height="12" rx="1.5" fill="#d4a843" opacity=".8"/>
+            <rect class="sb" x="137" y="152" width="4.5" height="14" rx="1.5" fill="#d4a843" opacity=".88"/>
+            <rect class="sb" x="144.5" y="154" width="4" height="12" rx="1.5" fill="#d4a843" opacity=".8"/>
+            <rect class="sb" x="151.5" y="156" width="4" height="10" rx="1.5" fill="#d4a843" opacity=".72"/>
+            <rect class="sb" x="158.5" y="158" width="4" height="8" rx="1.5" fill="#d4a843" opacity=".65"/>
+          </g>
+
+          <!-- HUD corners -->
+          <text x="8" y="20" fill="#261004" font-size="6" font-family="monospace">VSPR</text>
+          <text x="8" y="29" fill="#d4a843" font-size="6" font-family="monospace" opacity=".5">ONLINE</text>
+          <text x="282" y="20" fill="#261004" font-size="6" font-family="monospace" text-anchor="end">INTEL</text>
+          <text x="282" y="29" fill="#d4a843" font-size="6" font-family="monospace" text-anchor="end" opacity=".5">ACTIVE</text>
+          <text x="8" y="269" fill="#261004" font-size="6" font-family="monospace">AI·4.6</text>
+          <text x="8" y="278" fill="#d4a843" font-size="6" font-family="monospace" opacity=".5">ARMED</text>
+          <text x="282" y="269" fill="#261004" font-size="6" font-family="monospace" text-anchor="end">MEM</text>
+          <text x="282" y="278" fill="#d4a843" font-size="6" font-family="monospace" text-anchor="end" opacity=".5">LOCAL</text>
+          <path d="M5 5 L5 20 L20 20" fill="none" stroke="#d4a843" stroke-width="1.6" opacity=".35"/>
+          <path d="M285 5 L285 20 L270 20" fill="none" stroke="#d4a843" stroke-width="1.6" opacity=".35"/>
+          <path d="M5 285 L5 270 L20 270" fill="none" stroke="#d4a843" stroke-width="1.6" opacity=".35"/>
+          <path d="M285 285 L285 270 L270 270" fill="none" stroke="#d4a843" stroke-width="1.6" opacity=".35"/>
+        </svg>
+
+        <div class="fst" id="fst">STANDBY</div>
+        <div class="wv"><div class="wvb"></div><div class="wvb"></div><div class="wvb"></div><div class="wvb"></div><div class="wvb"></div><div class="wvb"></div><div class="wvb"></div><div class="wvb"></div></div>
+        <div class="interim" id="interim"></div>
+        <button class="mic" id="micbtn" onclick="toggleVoice()">🎤</button>
+        <div class="vhint" id="vhint">Click to speak · Chrome recommended</div>
+        <div class="vsel">
+          <label>Voice:</label>
+          <select id="voice-sel" onchange="setVoice(this.value)"><option value="">Auto (female)</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="rp">
+      <div class="tabs">
+        <div class="tab on"  data-p="chat"  onclick="swt('chat',this)"  title="Chat">◎</div>
+        <div class="tab"     data-p="brief" onclick="swt('brief',this)" title="Brief">✦</div>
+        <div class="tab"     data-p="quick" onclick="swt('quick',this)" title="Quick">⟡</div>
+        <div class="tab"     data-p="email" onclick="swt('email',this)" title="Email">✉</div>
+        <div class="tab"     data-p="wa"    onclick="swt('wa',this)"    title="WhatsApp">💬</div>
+        <div class="tab"     data-p="news"  onclick="swt('news',this)"  title="News">⊞</div>
+        <div class="tab"     data-p="tasks" onclick="swt('tasks',this)" title="Tasks">◧</div>
+        <div class="tab"     data-p="rem"   onclick="swt('rem',this)"   title="Reminders">◉</div>
+        <div class="tab"     data-p="mom"   onclick="swt('mom',this)"   title="MOM">≡</div>
+        <div class="tab"     data-p="apps"  onclick="swt('apps',this)"  title="Apps" style="margin-left:auto;">⊕</div>
+        <div class="tab"     data-p="sett"  onclick="swt('sett',this)"  title="Settings">⚙</div>
+      </div>
+      <div class="tcon">
+
+        <!-- CHAT -->
+        <div class="tp on" id="tp-chat">
+          <div class="ma">Good day, Sir. <strong>VESPER online.</strong> I have full visibility of your calendar, tasks, and reminders. You may speak or type. How may I assist?</div>
+        </div>
+
+        <!-- BRIEF -->
+        <div class="tp" id="tp-brief">
+          <button class="brbtn" id="brbtn" onclick="genBrief()">✦ Generate Morning Brief</button>
+          <div id="brout"></div>
+        </div>
+
+        <!-- QUICK -->
+        <div class="tp" id="tp-quick">
+          <span class="plbl">Quick Commands</span>
+          <div class="qg">
+            <div class="qc" onclick="qcmd('What are my priorities today based on my calendar?')">Today's Focus</div>
+            <div class="qc" onclick="qcmd('Top 3 Indian business news headlines right now.')">Latest News</div>
+            <div class="qc" onclick="qcmd('Suggest my evening strength training workout.')">Workout</div>
+            <div class="qc" onclick="qcmd('Clean meal plan today. Eggs daily, chicken/fish weekends, quinoa, seeds, veg, yogurt.')">Meal Plan</div>
+            <div class="qc" onclick="qcmd('One Bhagavad Gita insight for my work as EA to a CEO today.')">Gita Insight</div>
+            <div class="qc" onclick="qcmd('Draft a sharp 3-point status update for CEO Abhishek Arora.')">CEO Update</div>
+            <div class="qc" onclick="qcmd('What meetings are this week and how should I prepare?')">Meeting Prep</div>
+            <div class="qc" onclick="qcmd('One advanced corporate English word — meaning, usage, professional example.')">Word of Day</div>
+          </div>
+        </div>
+
+        <!-- EMAIL -->
+        <div class="tp" id="tp-email">
+          <span class="plbl">Email Drafter</span>
+          <div class="prow">
+            <input class="pfi" id="em-to" placeholder="To (optional)"/>
+            <input class="pfi" id="em-sub" placeholder="Subject (optional)"/>
+          </div>
+          <select class="pfs" id="em-tone">
+            <option value="direct">Direct &amp; Sharp</option>
+            <option value="diplomatic">Diplomatic</option>
+            <option value="urgent">Urgent</option>
+            <option value="formal">Formal Corporate</option>
+          </select>
+          <textarea class="pfta" id="em-ctx" placeholder="Bullet points:&#10;• CEO wants Q1 update&#10;• Highlight growth&#10;• Propose sync call" style="min-height:88px;"></textarea>
+          <button class="pbtn" id="em-btn" onclick="genEmail()">✉ Draft Email</button>
+          <div class="pout" id="em-out">
+            <div id="em-text"></div>
+            <div class="pout-act">
+              <button class="pa-btn" onclick="cpEl('em-text')">Copy</button>
+              <button class="pa-btn" onclick="refineEmail()">Refine ↗</button>
+              <button class="pa-btn" onclick="clrOut('em-out','em-text','em-ctx')">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- WHATSAPP -->
+        <div class="tp" id="tp-wa">
+          <span class="plbl">WhatsApp</span>
+          <div class="wa-compose">
+            <div class="wa-lbl">Quick Message</div>
+            <select class="pfs" id="wa-sel" style="margin-bottom:6px;"></select>
+            <textarea class="pfta" id="wa-msg" placeholder="Type your message…" style="min-height:54px;"></textarea>
+            <div style="display:flex;gap:6px;">
+              <button class="pbtn grn" style="margin-top:0;" onclick="sendWA()">Open in WhatsApp ↗</button>
+              <button class="pbtn" style="margin-top:0;width:auto;padding:8px 12px;" onclick="openModal('wac-modal')">+ Contact</button>
+            </div>
+          </div>
+          <span class="plbl">Contacts</span>
+          <div id="wa-list"></div>
+        </div>
+
+        <!-- NEWS -->
+        <div class="tp" id="tp-news">
+          <span class="plbl">Live News</span>
+          <div class="tc-wrap" id="tc-wrap">
+            <div class="tc on" data-t="Indian business economy today">India Business</div>
+            <div class="tc" data-t="Indian edtech education startups">Edtech</div>
+            <div class="tc" data-t="Indian stock market Sensex Nifty">Markets</div>
+            <div class="tc" data-t="Indian corporate executive news">Corporate</div>
+            <div class="tc" data-t="global technology AI news">Global Tech</div>
+            <div class="tc" data-t="Mumbai real estate news">Mumbai</div>
+          </div>
+          <button class="pbtn" id="news-btn" onclick="fetchNews()">⊞ Fetch News</button>
+          <div id="news-out" style="margin-top:8px;font-size:10.5px;line-height:1.8;color:var(--txt);"></div>
+        </div>
+
+        <!-- TASKS -->
+        <div class="tp" id="tp-tasks">
+          <div class="tstat" id="tstat"></div>
+          <div class="t-add">
+            <input class="t-inp" id="t-inp" placeholder="Add task… Enter to save" onkeydown="if(event.key==='Enter')addTask()"/>
+            <button class="t-add-btn" onclick="addTask()">+</button>
+          </div>
+          <div class="prow" style="margin-bottom:8px;">
+            <select class="pfs" id="t-pri" style="margin-bottom:0;font-size:9.5px;padding:5px 7px;">
+              <option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option>
+            </select>
+            <select class="pfs" id="t-cat" style="margin-bottom:0;font-size:9.5px;padding:5px 7px;">
+              <option>Work</option><option>Personal</option><option>Health</option>
+            </select>
+          </div>
+          <div id="t-list"></div>
+        </div>
+
+        <!-- REMINDERS -->
+        <div class="tp" id="tp-rem">
+          <button class="rem-add" onclick="openModal('rem-modal')">+ Set Reminder</button>
+          <div id="rem-list"></div>
+        </div>
+
+        <!-- MOM -->
+        <div class="tp" id="tp-mom">
+          <span class="plbl">Minutes of Meeting</span>
+          <div class="prow" style="margin-bottom:7px;">
+            <input class="pfi" id="mom-title" placeholder="Meeting title" style="margin-bottom:0;"/>
+            <input class="pfi" id="mom-date" type="date" style="margin-bottom:0;"/>
+          </div>
+          <input class="pfi" id="mom-att" placeholder="Attendees: Arun K, Brinda K…"/>
+          <textarea class="pfta" id="mom-tx" placeholder="Paste transcript or bullet notes…" style="min-height:108px;"></textarea>
+          <button class="pbtn" id="mom-btn" onclick="genMOM()">≡ Generate MOM</button>
+          <div class="pout" id="mom-out">
+            <div id="mom-text"></div>
+            <div class="pout-act">
+              <button class="pa-btn" onclick="cpEl('mom-text')">Copy MOM</button>
+              <button class="pa-btn" onclick="clrOut('mom-out','mom-text','mom-tx')">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- APPS -->
+        <div class="tp" id="tp-apps">
+          <span class="plbl">App Launcher</span>
+          <div class="app-grid" id="app-grid"></div>
+          <div style="font-size:8px;letter-spacing:2px;color:var(--txt3);text-transform:uppercase;margin:8px 0 5px;">Voice Commands</div>
+          <div class="app-vcmd">
+            Say <span>"Open WhatsApp"</span> · <span>"Open Gmail"</span><br/>
+            Say <span>"Close Spotify"</span> to close apps VESPER opened<br/>
+            Say <span>"Send WhatsApp to Kshitij saying…"</span>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="tp" id="tp-sett">
+          <span class="plbl">Settings</span>
+          <div class="srow"><div><div class="slbl">Voice Output</div><div class="sdesc">VESPER speaks responses</div></div><button class="btn btg" id="voutbtn" onclick="toggleVOut()">ON</button></div>
+          <div class="srow"><div><div class="slbl">Export All Data</div><div class="sdesc">Events, tasks, reminders, contacts</div></div><button class="btn btg" onclick="exportAll()">Export</button></div>
+          <div class="srow"><div><div class="slbl">Clear All Data</div><div class="sdesc">Permanent — cannot be undone</div></div><button class="btn btd" onclick="clearAll()">Clear</button></div>
+          <div class="srow"><div><div class="slbl" style="font-size:10px;color:var(--txt2);">VESPER · Claude Sonnet 4.6 · KD</div></div></div>
+        </div>
+
+      </div><!-- /tcon -->
+      <div class="cia">
+        <textarea class="ci" id="ci" placeholder="Ask VESPER…" rows="1" onkeydown="ckEnter(event)"></textarea>
+        <button class="cs" id="cs" onclick="sendMsg()">↑</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app-wrap -->
+
+<!-- MODALS -->
+<div class="ov" id="ev-modal">
+  <div class="modal">
+    <div class="mh" id="evmh">Add Event</div>
+    <div class="fg"><label class="fl">Title</label><input class="fi" id="ev-title" placeholder="Meeting, call…"/></div>
+    <div class="fr2"><div class="fg"><label class="fl">Date</label><input class="fi" id="ev-date" type="date"/></div><div class="fg"><label class="fl">Start</label><input class="fi" id="ev-st" type="time"/></div></div>
+    <div class="fr2"><div class="fg"><label class="fl">End</label><input class="fi" id="ev-et" type="time"/></div><div class="fg"><label class="fl">Type</label><select class="fs" id="ev-type"><option value="work">Work</option><option value="personal">Personal</option><option value="health">Health</option><option value="other">Other</option></select></div></div>
+    <div class="fg"><label class="fl">Location</label><input class="fi" id="ev-loc" placeholder="BKC / Zoom…"/></div>
+    <div class="mact"><button class="btn btd" id="ev-del" onclick="delEv()" style="margin-right:auto;display:none;">Delete</button><button class="btn btg" onclick="closeModal('ev-modal')">Cancel</button><button class="btn btc" onclick="saveEv()">Save</button></div>
+  </div>
+</div>
+
+<div class="ov" id="wac-modal">
+  <div class="modal">
+    <div class="mh">Add Contact</div>
+    <div class="fg"><label class="fl">Name</label><input class="fi" id="wac-nm" placeholder="Kshitij J."/></div>
+    <div class="fg"><label class="fl">WhatsApp Number (with country code)</label><input class="fi" id="wac-ph" placeholder="919876543210" type="tel"/></div>
+    <div class="fg"><label class="fl">Category</label><select class="fs" id="wac-cat"><option>Work</option><option>CEO Office</option><option>Personal</option></select></div>
+    <div class="mact"><button class="btn btg" onclick="closeModal('wac-modal')">Cancel</button><button class="btn btc" onclick="saveWAC()">Add</button></div>
+  </div>
+</div>
+
+<div class="ov" id="rem-modal">
+  <div class="modal">
+    <div class="mh">Set Reminder</div>
+    <div class="fg"><label class="fl">Title</label><input class="fi" id="rem-t" placeholder="BLT Meeting prep…"/></div>
+    <div class="fr2"><div class="fg"><label class="fl">Date</label><input class="fi" id="rem-d" type="date"/></div><div class="fg"><label class="fl">Time</label><input class="fi" id="rem-ti" type="time"/></div></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="rem-n" placeholder="Prep notes…" style="min-height:44px;"></textarea></div>
+    <div class="mact"><button class="btn btg" onclick="closeModal('rem-modal')">Cancel</button><button class="btn btc" onclick="saveRem()">Set</button></div>
+  </div>
+</div>
+
+<div class="ov" id="sett-modal">
+  <div class="modal" style="max-width:300px">
+    <div class="mh">Settings</div>
+    <div class="srow"><div><div class="slbl">Voice</div></div><button class="btn btg" id="voutbtn2" onclick="toggleVOut()">ON</button></div>
+    <div class="srow"><div><div class="slbl">Export</div></div><button class="btn btg" onclick="exportAll()">Export</button></div>
+    <div class="mact"><button class="btn btc" onclick="closeModal('sett-modal')">Close</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── API KEY MANAGEMENT ── */
+function getKey(){
+  const key = localStorage.getItem('vsp_key') || sessionStorage.getItem('vsp_key') || '';
+  console.log('API Key retrieved:', key.substring(0,10) + (key ? '...' : '[EMPTY]'));
+  return key;
+}
+
+function saveKey(){
+  const k=document.getElementById('api-key-inp').value.trim();
+  if(!k.startsWith('sk-ant-')){toast('Invalid key. Must start with sk-ant-');console.log('Invalid key format');return;}
+  localStorage.setItem('vsp_key',k);
+  sessionStorage.setItem('vsp_key',k);
+  console.log('✓ API Key saved:', k.substring(0,10) + '...');
+  updateKeyBanner(true);
+  toast('VESPER connected. ✓');
+  speak('Connected and ready, Sir.');
+}
+
+function updateKeyBanner(connected){
+  const banner=document.getElementById('api-banner');
+  const lbl=document.getElementById('api-lbl');
+  const inp=document.getElementById('api-key-inp');
+  if(connected){
+    banner.classList.add('ok');
+    lbl.textContent='● VESPER Connected';
+    inp.classList.add('ok');
+    inp.value='sk-ant-••••••••••••••••••••';
+  }else{
+    banner.classList.remove('ok');
+    lbl.textContent='API Key Required';
+    inp.classList.remove('ok');
+    inp.value='';
+  }
+}
+
+/* Central API call — injects key + required headers for browser access */
+async function apiCall(payload){
+  const key=getKey();
+  if(!key){
+    toast('Enter your Anthropic API key in the banner above first.');
+    throw new Error('No API key');
+  }
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+    },
+    body:JSON.stringify(payload),
+  });
+  if(!res.ok){
+    const err=await res.json().catch(()=>({}));
+    const msg=err?.error?.message||`API error ${res.status}`;
+    if(res.status===401){
+      updateKeyBanner(false);
+      sessionStorage.removeItem('vsp_key');
+      toast('Invalid API key. Please reconnect.');
+    }
+    throw new Error(msg);
+  }
+  return res.json();
+}
+const K={ev:'vsp_ev1',vout:'vsp_vout1',tasks:'vsp_tasks1',rem:'vsp_rem1',wa:'vsp_wa1'};
+
+/* ── STATE ── */
+let evs=[],outlookEvs=[],chatHist=[],evEdit=null,voiceOn=true;
+let recognition=null,isListening=false,voiceReady=false,selVoice=null;
+const openWin={};
+let activeTopics=new Set(['Indian business economy today']);
+
+/* ── APPS ── */
+const APPS={
+  whatsapp:{icon:'💬',name:'WhatsApp',url:'https://web.whatsapp.com'},
+  gmail:{icon:'📧',name:'Gmail',url:'https://mail.google.com'},
+  calendar:{icon:'📅',name:'Calendar',url:'https://calendar.google.com'},
+  outlook:{icon:'📨',name:'Outlook',url:'https://outlook.office365.com'},
+  linkedin:{icon:'💼',name:'LinkedIn',url:'https://linkedin.com'},
+  teams:{icon:'👥',name:'Teams',url:'https://teams.microsoft.com'},
+  maps:{icon:'🗺️',name:'Maps',url:'https://maps.google.com'},
+  drive:{icon:'🗂️',name:'Drive',url:'https://drive.google.com'},
+  notion:{icon:'📓',name:'Notion',url:'https://notion.so'},
+  spotify:{icon:'🎵',name:'Spotify',url:'https://open.spotify.com'},
+  youtube:{icon:'▶️',name:'YouTube',url:'https://youtube.com'},
+  docs:{icon:'📄',name:'Docs',url:'https://docs.google.com'},
+};
+const APP_ALIASES={
+  whatsapp:['whatsapp','wa'],gmail:['gmail','email','mail'],
+  calendar:['calendar','gcal'],outlook:['outlook','office'],
+  linkedin:['linkedin'],teams:['teams','microsoft teams'],
+  maps:['maps','navigation','directions'],drive:['drive','google drive'],
+  notion:['notion'],spotify:['spotify','music'],
+  youtube:['youtube','yt','video'],docs:['docs','google docs'],
+};
+
+const DEF_WA=[
+  {id:'w1',name:'Abhishek Arora',phone:'',cat:'CEO Office'},
+  {id:'w2',name:'Kshitij J.',phone:'',cat:'CEO Office'},
+  {id:'w3',name:'Brinda K.',phone:'',cat:'Work'},
+  {id:'w4',name:'Trupti S.',phone:'',cat:'Work'},
+  {id:'w5',name:'Sridhar N.',phone:'',cat:'Work'},
+  {id:'w6',name:'Ali K.',phone:'',cat:'Work'},
+  {id:'w7',name:'Sanjeev U.',phone:'',cat:'Work'},
+  {id:'w8',name:'Arun K.',phone:'',cat:'Work'},
+];
+
+/* ── INIT ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  try{evs=JSON.parse(localStorage.getItem(K.ev)||'[]');}catch(e){evs=[];}
+  voiceOn=localStorage.getItem(K.vout)!=='off';
+  /* Restore key state if already set this session */
+  if(getKey())updateKeyBanner(true);
+  clockTick();setInterval(clockTick,1000);
+  renderCal();renderTasks();renderRem();renderAppGrid();renderWA();
+  initRem();initTopics();updVBtn();
+  const today=new Date().toISOString().slice(0,10);
+  ['ev-date','rem-d','mom-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+  if(window.speechSynthesis){
+    window.speechSynthesis.onvoiceschanged=popVoices;
+    setTimeout(popVoices,400);
+  }
+  setupVoice();
+  setTimeout(()=>speak('Good day, Sir. VESPER is online and standing by.'),800);
+});
+
+/* ── CLOCK ── */
+function clockTick(){
+  const n=new Date();
+  document.getElementById('tbdt').textContent=
+    n.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+
+    n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+}
+
+/* ── STATE ── */
+const ST={idle:'STANDBY',listening:'LISTENING',processing:'PROCESSING',speaking:'SPEAKING'};
+function setState(s){
+  document.getElementById('vsvg').className='st-'+s;
+  document.getElementById('fst').textContent=ST[s]||'STANDBY';
+  document.getElementById('micbtn').classList.toggle('on',s==='listening');
+  document.getElementById('micbtn').classList.toggle('proc',s==='processing');
+}
+
+/* ── VOICE OUTPUT ── */
+function popVoices(){
+  const vs=window.speechSynthesis.getVoices();
+  const sel=document.getElementById('voice-sel');
+  sel.innerHTML='<option value="">Auto (female)</option>';
+  vs.filter(v=>v.lang.startsWith('en')).forEach((v,i)=>{
+    const o=document.createElement('option');o.value=i;o.textContent=`${v.name} (${v.lang})`;sel.appendChild(o);
+  });
+  selVoice=pickFemale(vs);
+}
+function pickFemale(vs){
+  const tries=[
+    v=>v.name==='Google UK English Female',
+    v=>v.name==='Karen',v=>v.name==='Moira',v=>v.name==='Tessa',
+    v=>v.name==='Fiona',v=>v.name==='Victoria',
+    v=>v.name.includes('Microsoft Hazel'),v=>v.name.includes('Microsoft Zira'),
+    v=>v.name==='Samantha',
+    v=>v.lang==='en-AU'&&!v.name.toLowerCase().includes('male'),
+    v=>v.lang==='en-GB'&&!['daniel','james'].some(m=>v.name.toLowerCase().includes(m)),
+    v=>v.lang.startsWith('en')&&v.name.toLowerCase().includes('female'),
+  ];
+  for(const t of tries){const v=vs.find(t);if(v)return v;}
+  return vs.find(v=>v.lang.startsWith('en')&&!['daniel','james','alex','fred','bruce'].some(m=>v.name.toLowerCase().includes(m)))||vs[0]||null;
+}
+function setVoice(idx){
+  const vs=window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en'));
+  selVoice=idx===''?pickFemale(window.speechSynthesis.getVoices()):vs[parseInt(idx)]||null;
+}
+function speak(txt){
+  if(!voiceOn||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const plain=txt.replace(/\*\*(.*?)\*\*/g,'$1').replace(/[#*_`]/g,'').replace(/\n/g,' ').slice(0,380);
+  const u=new SpeechSynthesisUtterance(plain);
+  u.rate=0.88;u.pitch=1.15;u.volume=1;
+  if(selVoice)u.voice=selVoice;
+  else{const v=pickFemale(window.speechSynthesis.getVoices());if(v)u.voice=v;}
+  u.onstart=()=>setState('speaking');
+  u.onend=u.onerror=()=>setState('idle');
+  window.speechSynthesis.speak(u);
+}
+
+/* ── VOICE INPUT ── */
+const VERR={'no-speech':'No speech detected. Try again.','audio-capture':'No microphone found.','not-allowed':'Microphone blocked. Allow access in browser settings, then reload.','network':'Network error. Check connection.','aborted':null};
+function setupVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){const h=document.getElementById('vhint');h.textContent='Voice requires Chrome browser.';h.classList.add('warn');document.getElementById('micbtn').style.opacity='.35';return;}
+  recognition=new SR();recognition.continuous=false;recognition.interimResults=true;recognition.lang='en-IN';
+  recognition.onresult=ev=>{
+    let interim='',final='';
+    for(const r of ev.results){if(r.isFinal)final+=r[0].transcript;else interim+=r[0].transcript;}
+    document.getElementById('interim').textContent=interim||final;
+    if(final){
+      document.getElementById('interim').textContent='';isListening=false;setState('processing');
+      const cmd=interceptVC(final.trim());
+      if(cmd){addMsg('a',cmd);speak(cmd);}
+      else{document.getElementById('ci').value=final.trim();sendMsg();}
+    }
+  };
+  recognition.onerror=ev=>{const m=VERR[ev.error];if(m)addMsg('a',m);isListening=false;setState('idle');document.getElementById('interim').textContent='';};
+  recognition.onend=()=>{if(isListening){try{recognition.start();}catch(e){isListening=false;setState('idle');}}else setState('idle');};
+  voiceReady=true;
+}
+function toggleVoice(){
+  if(!voiceReady){addMsg('a','Voice requires Google Chrome, Sir.');return;}
+  if(isListening){isListening=false;recognition.stop();setState('idle');document.getElementById('interim').textContent='';return;}
+  const go=()=>{try{isListening=true;recognition.start();setState('listening');document.getElementById('vhint').textContent='Listening… tap to stop';}
+    catch(e){if(e.name==='InvalidStateError'){recognition.stop();setTimeout(go,250);}else{isListening=false;setState('idle');}}};
+  if(navigator.permissions)navigator.permissions.query({name:'microphone'}).then(r=>{if(r.state==='denied'){addMsg('a','Microphone blocked, Sir.');return;}go();}).catch(go);
+  else go();
+}
+
+/* ── VOICE COMMAND INTERCEPT ── */
+function interceptVC(text){
+  const t=text.toLowerCase().trim();
+  const openM=t.match(/^(?:open|launch|start|show)\s+(.+?)(?:\s+app)?$/i);
+  if(openM){const k=matchApp(openM[1]);if(k){openApp(k);return`Opening ${APPS[k].name}, Sir.`;}}
+  const closeM=t.match(/^(?:close|quit|exit|shut)\s+(.+?)(?:\s+app)?$/i);
+  if(closeM){const k=matchApp(closeM[1]);if(k){return closeApp(k)?`${APPS[k].name} closed.`:`${APPS[k].name} wasn't opened by me, Sir.`;}}
+  const waM=t.match(/(?:send|message|whatsapp|text)\s+(?:to\s+)?(.+?)\s+(?:saying|about|that)\s+(.+)/i);
+  if(waM){const c=findWAC(waM[1]);const msg=waM[2];if(c?.phone){openWin.wa=window.open(`https://web.whatsapp.com/send?phone=${c.phone}&text=${encodeURIComponent(msg)}`,'_vsp_wa');return`WhatsApp to ${c.name} ready, Sir.`;}return`No number for that contact, Sir. Add it in the WhatsApp tab.`;}
+  return null;
+}
+function matchApp(t){const l=t.toLowerCase().trim();for(const[k,al]of Object.entries(APP_ALIASES)){if(al.some(a=>l.includes(a)||a.includes(l)))return k;}return null;}
+function openApp(k){const w=openWin[k];if(w&&!w.closed){try{w.focus();return;}catch(e){}}openWin[k]=window.open(APPS[k].url,'_vsp_'+k);renderAppGrid();}
+function closeApp(k){const w=openWin[k];if(w&&!w.closed){try{w.close();delete openWin[k];renderAppGrid();return true;}catch(e){}}return false;}
+function renderAppGrid(){
+  document.getElementById('app-grid').innerHTML=Object.entries(APPS).map(([k,a])=>{
+    const open=openWin[k]&&!openWin[k].closed;
+    return`<div class="app-card${open?' open':''}" onclick="openApp('${k}');addMsg('a','Opening ${a.name}, Sir.')"><div class="app-icon">${a.icon}</div><div class="app-nm">${a.name}${open?' ●':''}</div></div>`;
+  }).join('');
+}
+
+/* ── CALENDAR ── */
+function dk(d){return d.toISOString().slice(0,10);}
+function ctxEvs(){
+  const all=[...outlookEvs,...evs];if(!all.length)return'None.';
+  return all.sort((a,b)=>(a.date+(a.st||'')).localeCompare(b.date+(b.st||'')))
+    .map(e=>`${e.date} ${e.st||'all day'}: ${e.title}${e.loc?' @ '+e.loc:''}`).join('; ');
+}
+function renderCal(){
+  const all=[...outlookEvs,...evs];const today=new Date();
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const mon=new Date(today);mon.setDate(today.getDate()-(today.getDay()===0?6:today.getDay()-1));
+  let html='';
+  for(let i=0;i<7;i++){
+    const d=new Date(mon);d.setDate(mon.getDate()+i);const k=dk(d);const isT=k===dk(today);
+    const de=all.filter(e=>e.date===k).sort((a,b)=>(a.st||'').localeCompare(b.st||''));
+    html+=`<div class="cdh">${days[i]} ${d.getDate()}${isT?` · <span style="color:var(--gld)">TODAY</span>`:''}</div>`;
+    if(!de.length){html+=`<div style="font-size:8px;color:var(--txt3);padding:2px 0 5px;">—</div>`;continue;}
+    de.forEach(e=>{html+=`<div class="cev"><div class="cev-t">${e.st||''}</div><div class="cev-n">${esc(e.title)}</div>${e.loc?`<div class="cev-l">📍 ${esc(e.loc)}</div>`:''}</div>`;});
+  }
+  document.getElementById('cal-body').innerHTML=html||'<div class="noevs">No events this week.</div>';
+}
+function dzOv(e){e.preventDefault();document.getElementById('drop-zone').style.borderColor='var(--gld)';}
+function dzLv(){document.getElementById('drop-zone').style.borderColor='';}
+function dzDp(e){e.preventDefault();dzLv();const f=e.dataTransfer.files[0];if(f)procICS(f);else toast('Drop a valid .ics file.');}
+function doICS(ev){const f=ev.target.files[0];if(f)procICS(f);}
+function procICS(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{outlookEvs=parseICS(e.target.result);renderCal();const n=outlookEvs.length;addMsg('a',`**${n} event${n!==1?'s':''}** loaded from "${file.name}", Sir.`);speak(`${n} calendar events loaded.`);}
+    catch(err){addMsg('a','Could not parse that file. Export from Outlook as .ics format.');}
+    document.getElementById('ics-inp').value='';
+  };r.readAsText(file);
+}
+function parseICS(raw){
+  const lines=[];
+  for(const ln of raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n')){
+    if((ln[0]===' '||ln[0]==='\t')&&lines.length)lines[lines.length-1]+=ln.slice(1);else lines.push(ln);
+  }
+  const evts=[];let ev=null;
+  for(const ln of lines){
+    if(ln.trim()==='BEGIN:VEVENT'){ev={};continue;}
+    if(ln.trim()==='END:VEVENT'){if(ev?.title)evts.push(ev);ev=null;continue;}
+    if(!ev)continue;
+    const ci=ln.indexOf(':');if(ci<0)continue;
+    const bk=ln.slice(0,ci).split(';')[0].toUpperCase();
+    const val=ln.slice(ci+1).replace(/\\n/g,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\').trim();
+    const utc=val.endsWith('Z');
+    if(bk==='SUMMARY')ev.title=val;
+    else if(bk==='LOCATION')ev.loc=val;
+    else if(bk==='DTSTART'){const p=pdt(val,utc);ev.date=p.d;ev.st=p.t;}
+    else if(bk==='DTEND'){ev.et=pdt(val,utc).t;}
+    else if(bk==='CATEGORIES'){const c=val.toLowerCase();ev.type=c.includes('personal')?'personal':c.includes('health')?'health':'work';}
+  }
+  evts.forEach(e=>{if(!e.type)e.type='work';});
+  return evts.sort((a,b)=>(a.date+a.st).localeCompare(b.date+b.st));
+}
+function pdt(val,utc){
+  const c=val.replace('Z','');let d='',t='';
+  if(c.includes('T')){const[dd,tt]=c.split('T');d=`${dd.slice(0,4)}-${dd.slice(4,6)}-${dd.slice(6,8)}`;
+    let h=parseInt(tt.slice(0,2)),m=parseInt(tt.slice(2,4));
+    if(utc){m+=30;h+=5;if(m>=60){m-=60;h++;}if(h>=24)h-=24;}
+    t=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  }else d=`${c.slice(0,4)}-${c.slice(4,6)}-${c.slice(6,8)}`;
+  return{d,t};
+}
+function saveEv(){
+  const title=document.getElementById('ev-title').value.trim();if(!title){alert('Title required.');return;}
+  const e={id:evEdit||'e'+Date.now(),date:document.getElementById('ev-date').value,title,st:document.getElementById('ev-st').value,et:document.getElementById('ev-et').value,type:document.getElementById('ev-type').value,loc:document.getElementById('ev-loc').value.trim()};
+  if(evEdit)evs=evs.map(x=>x.id===evEdit?e:x);else evs.push(e);
+  localStorage.setItem(K.ev,JSON.stringify(evs));closeModal('ev-modal');renderCal();
+}
+function delEv(){if(!evEdit||!confirm('Delete?'))return;evs=evs.filter(x=>x.id!==evEdit);localStorage.setItem(K.ev,JSON.stringify(evs));closeModal('ev-modal');renderCal();}
+
+/* ── CHAT ── */
+const SYS=()=>`You are VESPER — a sophisticated, elegant AI assistant to KD (KanwalRaj Dixit), EA to CEO Abhishek Arora at TimesPro (edtech, Mumbai). Precise, warm, executive-grade. Address KD as "Sir" sparingly. Never verbose. Key people: Abhishek Arora (CEO), Ali K, Brillian SK (CPO), Brinda K, Sridhar N, Mohit L, Trupti S, Kshitij J, Sanjeev U, Arun K, Anish R. KD: Mumbai Powai, Krishna devotee, Bhagavad Gita, off social media, strength training evenings, clean diet. Calendar: ${ctxEvs()}. Bold key info. For voice: ≤3 sentences.`;
+async function sendMsg(){
+  const inp=document.getElementById('ci');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';swt('chat',qtab('chat'));chatHist.push({role:'user',content:msg});addMsg('u',msg);setState('processing');document.getElementById('cs').disabled=true;
+  const lid='l'+Date.now();const ld=document.createElement('div');ld.className='ma';ld.id=lid;ld.innerHTML='<div class="ld"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';
+  document.getElementById('tp-chat').appendChild(ld);scrl();
+  try{
+    const data=await apiCall({model:'claude-sonnet-4-20250514',max_tokens:1000,tools:[{type:'web_search_20250305',name:'web_search'}],system:SYS(),messages:chatHist});const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    document.getElementById(lid)?.remove();addMsg('a',txt);chatHist.push({role:'assistant',content:txt});
+    if(voiceOn)speak(txt.split('\n').slice(0,2).join(' ').slice(0,300));else setState('idle');
+  }catch(e){document.getElementById(lid)?.remove();addMsg('a',e.message==='No API key'?'Please enter your Anthropic API key in the banner at the top, Sir.':'Connection error, Sir. Check your network and try again.');setState('idle');}
+  document.getElementById('cs').disabled=false;
+}
+function addMsg(role,text){const c=document.getElementById('tp-chat');const d=document.createElement('div');d.className=role==='a'?'ma':'mu';d.innerHTML=role==='a'?fmt(text):esc(text);c.appendChild(d);scrl();}
+function scrl(){const c=document.getElementById('tp-chat');c.scrollTop=c.scrollHeight;}
+function ckEnter(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function qcmd(p){document.getElementById('ci').value=p;sendMsg();}
+
+/* ── BRIEF ── */
+async function genBrief(){
+  const btn=document.getElementById('brbtn');btn.disabled=true;btn.textContent='Composing…';
+  const out=document.getElementById('brout');out.innerHTML='<div class="ld"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';setState('processing');
+  const today=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  try{
+    const data=await apiCall({model:'claude-sonnet-4-20250514',max_tokens:1200,tools:[{type:'web_search_20250305',name:'web_search'}],
+        system:`You are VESPER. Generate an executive morning briefing with bold headers: **📅 Today's Agenda**, **📰 News** (search 3 Indian business headlines today), **💡 Suggestions**, **🎯 Priority**, **🙏 Gita Insight**. CEO-grade language. Today: ${today}.`,
+        messages:[{role:'user',content:`Calendar: ${ctxEvs()}. Tasks: ${getPendingTasks()}. Brief.`}]});
+    const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    out.innerHTML=fmt(txt);speak('Your morning briefing is ready, Sir.');
+  }catch(e){out.innerHTML='<span style="color:var(--red)">Failed. Check connection.</span>';setState('idle');}
+  btn.disabled=false;btn.textContent='✦ Regenerate';
+}
+
+/* ── EMAIL ── */
+async function genEmail(){
+  const ctx=document.getElementById('em-ctx').value.trim();if(!ctx){toast('Add bullet points first.');return;}
+  const btn=document.getElementById('em-btn');btn.disabled=true;btn.textContent='Drafting…';
+  const out=document.getElementById('em-out');const el=document.getElementById('em-text');
+  out.classList.add('on');el.innerHTML='<div class="ld"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';setState('processing');
+  const to=document.getElementById('em-to').value.trim();const sub=document.getElementById('em-sub').value.trim();const tone=document.getElementById('em-tone').value;
+  const td={direct:'direct and sharp — no padding',diplomatic:'warm and tactful',urgent:'urgent with a clear timeline',formal:'formal corporate register'};
+  try{
+    const data=await apiCall({model:'claude-sonnet-4-20250514',max_tokens:600,
+        system:`You are VESPER drafting an email for KD at TimesPro. First person. Tone: ${td[tone]}. ${to?`To: ${to}.`:''} ${sub?`Subject: ${sub}.`:''} Include Subject if not provided. Sign off "KD". No generic phrases.`,
+        messages:[{role:'user',content:`Draft email:\n${ctx}`}]});
+    const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    el.innerHTML=fmt(txt);speak('Email draft ready, Sir.');
+  }catch(e){el.innerHTML='<span style="color:var(--red)">Draft failed.</span>';}
+  btn.disabled=false;btn.textContent='✉ Draft Email';setState('idle');
+}
+function refineEmail(){const t=document.getElementById('em-text').innerText;document.getElementById('ci').value=`Refine this email — sharper:\n\n${t.slice(0,400)}`;sendMsg();}
+
+/* ── NEWS ── */
+function initTopics(){
+  document.querySelectorAll('.tc').forEach(chip=>{chip.addEventListener('click',()=>{const t=chip.dataset.t;activeTopics.has(t)?(activeTopics.delete(t),chip.classList.remove('on')):(activeTopics.add(t),chip.classList.add('on'));});});
+}
+async function fetchNews(){
+  if(!activeTopics.size){toast('Select a topic.');return;}
+  const btn=document.getElementById('news-btn');btn.disabled=true;btn.textContent='Fetching…';
+  const out=document.getElementById('news-out');out.innerHTML='<div class="ld"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';setState('processing');
+  const topics=[...activeTopics].join(', ');
+  try{
+    const data=await apiCall({model:'claude-sonnet-4-20250514',max_tokens:1000,tools:[{type:'web_search_20250305',name:'web_search'}],
+        system:`You are VESPER. Search and present today's news on: ${topics}. Format each: **[Source] · [time]**\n[Headline]\n[2-sentence summary]\n---\nDate: ${new Date().toLocaleDateString('en-IN')}.`,
+        messages:[{role:'user',content:`Latest news on: ${topics}.`}]});
+    const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    out.innerHTML=fmt(txt);
+  }catch(e){out.innerHTML='<span style="color:var(--red)">Failed.</span>';}
+  btn.disabled=false;btn.textContent='⊞ Refresh';setState('idle');
+}
+
+/* ── TASKS ── */
+function getTasks(){try{return JSON.parse(localStorage.getItem(K.tasks)||'[]');}catch(e){return[];}}
+function saveTasks(t){localStorage.setItem(K.tasks,JSON.stringify(t));}
+function getPendingTasks(){return getTasks().filter(t=>!t.done).map(t=>`[${t.pri}] ${t.title}`).join(', ')||'None';}
+function addTask(){const i=document.getElementById('t-inp');const t=i.value.trim();if(!t)return;const tasks=getTasks();tasks.push({id:'t'+Date.now(),title:t,pri:document.getElementById('t-pri').value,cat:document.getElementById('t-cat').value,done:false});saveTasks(tasks);i.value='';renderTasks();}
+function toggleTask(id){saveTasks(getTasks().map(t=>t.id===id?{...t,done:!t.done}:t));renderTasks();}
+function delTask(id){if(!confirm('Delete?'))return;saveTasks(getTasks().filter(t=>t.id!==id));renderTasks();}
+function renderTasks(){
+  const tasks=getTasks();const done=tasks.filter(t=>t.done).length;
+  document.getElementById('tstat').textContent=`${done}/${tasks.length} complete`;
+  const ord={high:0,medium:1,low:2};const bp={high:[],medium:[],low:[]};
+  tasks.sort((a,b)=>ord[a.pri]-ord[b.pri]).forEach(t=>bp[t.pri].push(t));
+  let html='';
+  ['high','medium','low'].forEach(p=>{if(!bp[p].length)return;
+    html+=`<div class="tgl ${p}">${p.toUpperCase()}</div>`;
+    bp[p].forEach(t=>{html+=`<div class="ti${t.done?' done':''}"><div class="tcb${t.done?' done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div><div style="flex:1"><div class="ttxt">${esc(t.title)}</div><div class="tcat">${t.cat}</div></div><span class="tpri ${t.pri}">${t.pri[0].toUpperCase()}</span><button class="tdel" onclick="delTask('${t.id}')">✕</button></div>`;});
+  });
+  document.getElementById('t-list').innerHTML=html||'<div style="font-size:9px;color:var(--txt3);text-align:center;margin-top:14px;">No tasks. Add above.</div>';
+}
+
+/* ── REMINDERS ── */
+function getRems(){try{return JSON.parse(localStorage.getItem(K.rem)||'[]');}catch(e){return[];}}
+function saveRems(r){localStorage.setItem(K.rem,JSON.stringify(r));}
+function saveRem(){
+  const t=document.getElementById('rem-t').value.trim();const d=document.getElementById('rem-d').value;const ti=document.getElementById('rem-ti').value;
+  if(!t||!d||!ti){toast('Title, date, and time required.');return;}
+  const dt=new Date(`${d}T${ti}`);if(dt<=new Date()){toast('Set a future time.');return;}
+  const r={id:'r'+Date.now(),title:t,datetime:dt.toISOString(),notes:document.getElementById('rem-n').value.trim(),fired:false};
+  const rems=getRems();rems.push(r);saveRems(rems);schedRem(r);
+  if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+  closeModal('rem-modal');['rem-t','rem-n'].forEach(id=>document.getElementById(id).value='');renderRem();toast('Reminder set. ✓');
+}
+function schedRem(r){const ms=new Date(r.datetime).getTime()-Date.now();if(ms>0&&ms<7*24*3600000)setTimeout(()=>fireRem(r.id),ms);}
+function fireRem(id){
+  const rems=getRems();const r=rems.find(x=>x.id===id);if(!r||r.fired)return;
+  saveRems(rems.map(x=>x.id===id?{...x,fired:true}:x));
+  if(Notification.permission==='granted')new Notification('VESPER',{body:r.title,tag:id});
+  toast(`⏰ ${r.title}`,4000);renderRem();
+}
+function delRem(id){if(!confirm('Delete?'))return;saveRems(getRems().filter(r=>r.id!==id));renderRem();}
+function initRem(){const now=Date.now();getRems().forEach(r=>{if(!r.fired){const ms=new Date(r.datetime).getTime();if(ms<=now)fireRem(r.id);else schedRem(r);}});}
+function renderRem(){
+  const rems=getRems().sort((a,b)=>new Date(a.datetime)-new Date(b.datetime));
+  const now=Date.now();const groups={};
+  rems.forEach(r=>{const k=new Date(r.datetime).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});if(!groups[k])groups[k]=[];groups[k].push(r);});
+  let html='';
+  Object.entries(groups).forEach(([day,items])=>{html+=`<div class="rdlbl">${day}</div>`;
+    items.forEach(r=>{const dt=new Date(r.datetime);const ms=dt.getTime()-now;const soon=ms>0&&ms<3600000;
+      const cls=r.fired?'fired':soon?'soon':'';
+      const ts=dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+      html+=`<div class="ri ${cls}"><div class="ri-time">${ts}</div><div class="ri-body"><div class="ri-title">${esc(r.title)}</div>${r.notes?`<div class="ri-notes">${esc(r.notes)}</div>`:''} ${r.fired?'<span class="rbadge done">Done</span>':soon?'<span class="rbadge soon">Soon</span>':''}</div><button class="ri-del" onclick="delRem('${r.id}')">✕</button></div>`;});
+  });
+  document.getElementById('rem-list').innerHTML=html||'<div style="font-size:9px;color:var(--txt3);text-align:center;margin-top:20px;">No reminders.<br/>Tap + to add one.</div>';
+}
+
+/* ── WHATSAPP ── */
+function getWA(){const s=localStorage.getItem(K.wa);return s?JSON.parse(s):DEF_WA;}
+function saveWA(c){localStorage.setItem(K.wa,JSON.stringify(c));}
+function findWAC(name){const n=name.toLowerCase();return getWA().find(c=>c.name.toLowerCase().includes(n)||n.includes(c.name.split(' ')[0].toLowerCase()));}
+function saveWAC(){
+  const nm=document.getElementById('wac-nm').value.trim();const ph=document.getElementById('wac-ph').value.trim().replace(/\D/g,'');const cat=document.getElementById('wac-cat').value;
+  if(!nm){toast('Name required.');return;}const wa=getWA();wa.push({id:'w'+Date.now(),name:nm,phone:ph,cat});saveWA(wa);closeModal('wac-modal');renderWA();document.getElementById('wac-nm').value='';document.getElementById('wac-ph').value='';toast(`${nm} added. ✓`);
+}
+function sendWA(){
+  const wa=getWA();const selId=document.getElementById('wa-sel').value;const msg=document.getElementById('wa-msg').value.trim();const c=wa.find(x=>x.id===selId);
+  if(!c){toast('Select a contact.');return;}if(!c.phone){toast(`No number for ${c.name}. Add it in the contact list.`);return;}
+  openWin.wa=window.open(`https://web.whatsapp.com/send?phone=${c.phone}${msg?'&text='+encodeURIComponent(msg):''}`, '_vsp_wa');document.getElementById('wa-msg').value='';renderAppGrid();
+}
+function renderWA(){
+  const wa=getWA();
+  const sel=document.getElementById('wa-sel');sel.innerHTML='<option value="">Select contact…</option>'+wa.map(c=>`<option value="${c.id}">${c.name} — ${c.cat}</option>`).join('');
+  document.getElementById('wa-list').innerHTML=wa.map(c=>`<div class="wa-contact"><div class="wa-av">${c.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div><div class="wa-info"><div class="wa-name">${esc(c.name)}</div><div class="wa-cat">${c.cat}</div>${c.phone?`<div class="wa-num">+${c.phone}</div>`:'<div class="wa-no-num">No number</div>'}</div><button class="wa-btn" ${!c.phone?'disabled':''} onclick="openWin.wa=window.open('https://web.whatsapp.com/send?phone=${c.phone}','_vsp_wa');renderAppGrid()">Message</button></div>`).join('');
+}
+
+/* ── MOM ── */
+async function genMOM(){
+  const tx=document.getElementById('mom-tx').value.trim();if(!tx){toast('Paste the transcript first.');return;}
+  const btn=document.getElementById('mom-btn');btn.disabled=true;btn.textContent='Generating…';
+  const out=document.getElementById('mom-out');const el=document.getElementById('mom-text');
+  out.classList.add('on');el.innerHTML='<div class="ld"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';setState('processing');
+  const title=document.getElementById('mom-title').value.trim()||'Meeting';const date=document.getElementById('mom-date').value;const att=document.getElementById('mom-att').value.trim()||'Not specified';
+  try{
+    const data=await apiCall({model:'claude-sonnet-4-20250514',max_tokens:1200,
+        system:`You are VESPER generating a MOM for KD at TimesPro.\n**MINUTES OF MEETING**\n**Meeting:** ${title} | **Date:** ${date} | **Attendees:** ${att}\n\n**EXECUTIVE SUMMARY**\n[2-3 sentences]\n\n**KEY DECISIONS**\n• ...\n\n**ACTION ITEMS**\n| Task | Owner | Deadline | Status |\n|------|-------|----------|--------|\n\n**NEXT STEPS**\n• ...\n\nPrecise. CEO-grade.`,
+        messages:[{role:'user',content:`Meeting: ${title}\nDate: ${date}\nAttendees: ${att}\n\nTranscript:\n${tx}`}]});
+    const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    el.innerHTML=fmt(txt);speak('MOM generated, Sir.');
+  }catch(e){el.innerHTML='<span style="color:var(--red)">Failed.</span>';}
+  btn.disabled=false;btn.textContent='≡ Generate MOM';setState('idle');
+}
+
+/* ── NAV ── */
+function swt(name,el){
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  const tp=document.getElementById('tp-'+name);if(tp)tp.classList.add('on');
+  if(el)el.classList.add('on');
+}
+function qtab(name){return document.querySelector(`.tab[data-p="${name}"]`);}
+function openModal(id){document.getElementById(id).classList.add('on');}
+function closeModal(id){document.getElementById(id).classList.remove('on');}
+
+/* ── SETTINGS ── */
+function toggleVOut(){voiceOn=!voiceOn;localStorage.setItem(K.vout,voiceOn?'on':'off');updVBtn();if(!voiceOn)window.speechSynthesis?.cancel();}
+function updVBtn(){['voutbtn','voutbtn2'].forEach(id=>{const b=document.getElementById(id);if(b)b.textContent=voiceOn?'ON':'OFF';});}
+function exportAll(){
+  const b=new Blob([JSON.stringify({events:evs,outlook:outlookEvs,tasks:getTasks(),reminders:getRems(),waContacts:getWA(),exported:new Date().toISOString()},null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='vesper_export.json';a.click();URL.revokeObjectURL(u);
+}
+function clearAll(){if(!confirm('Erase all VESPER data?'))return;Object.values(K).forEach(k=>localStorage.removeItem(k));location.reload();}
+
+/* ── UTILS ── */
+function fmt(t){return'<p>'+t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>')+'</p>';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function cpEl(id){const t=document.getElementById(id).innerText;navigator.clipboard.writeText(t).then(()=>toast('Copied. ✓')).catch(()=>toast('Copy failed.'));}
+function clrOut(outId,textId,inputId){document.getElementById(outId).classList.remove('on');document.getElementById(textId).innerHTML='';if(inputId)document.getElementById(inputId).value='';}
+let _tid;function toast(msg,ms=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(_tid);_tid=setTimeout(()=>t.classList.remove('on'),ms);}
+
+/* ── INIT ON LOAD ── */
+document.addEventListener('DOMContentLoaded',function(){
+  const savedKey=localStorage.getItem('vsp_key')||sessionStorage.getItem('vsp_key');
+  if(savedKey){
+    document.getElementById('api-key-inp').value=savedKey;
+    updateKeyBanner(true);
+    console.log('✓ API Key loaded from storage');
+  }
+});
+</script>
+</body>
+</html>
