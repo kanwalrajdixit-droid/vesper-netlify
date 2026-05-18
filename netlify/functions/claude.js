@@ -1,6 +1,9 @@
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+    return { 
+      statusCode: 405, 
+      body: JSON.stringify({ error: 'Method not allowed' }) 
+    };
   }
 
   try {
@@ -9,7 +12,7 @@ exports.handler = async (event) => {
     if (!apiKey) {
       return { 
         statusCode: 400, 
-        body: JSON.stringify({ error: 'API key required' }) 
+        body: JSON.stringify({ error: { message: 'API key required' } }) 
       };
     }
 
@@ -33,7 +36,7 @@ exports.handler = async (event) => {
     if (!response.ok) {
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: data.error?.message || 'API error' })
+        body: JSON.stringify({ error: data.error || { message: 'API error' } })
       };
     }
 
@@ -44,7 +47,7 @@ exports.handler = async (event) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: { message: error.message } })
     };
   }
 };
