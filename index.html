@@ -821,14 +821,12 @@ async function apiCall(payload){
     toast('Enter your Anthropic API key in the banner above first.');
     throw new Error('No API key');
   }
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
+  const res=await fetch('/netlify/functions/claude',{
     method:'POST',
     headers:{
       'Content-Type':'application/json',
-      'x-api-key':key,
-      'anthropic-version':'2023-06-01',
     },
-    body:JSON.stringify(payload),
+    body:JSON.stringify({...payload, apiKey:key}),
   });
   if(!res.ok){
     const err=await res.json().catch(()=>({}));
